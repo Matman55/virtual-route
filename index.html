@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-touch-fullscreen" content="yes" />
+  <title>World Challenge</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div id="mapBackdrop"><div id="map" aria-label="Map"></div></div>
+
+  <main class="app" id="appMain">
+
+    <!-- ══════════════════════════════════════════════
+         RUN TAB (default)
+    ══════════════════════════════════════════════ -->
+    <section class="tabPane" id="tabRun" aria-label="Run">
+      <div class="runScreenHeader">
+        <div class="runTitle" id="runTitleEl">WORLD CHALLENGE</div>
+        <button id="shareBtn" class="shareBtn" type="button" title="Share your progress">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          SHARE
+        </button>
+      </div>
+
+      <!-- SETUP: mode switcher -->
+      <div id="setupPhase" class="phase">
+        <div class="modeSwitcher">
+          <button class="modeTab active" id="modeCustomBtn" type="button">CUSTOM</button>
+          <button class="modeTab" id="modeFamousBtn" type="button">FAMOUS RACE</button>
+        </div>
+
+        <!-- Custom mode -->
+        <div id="customModePanel" class="modePanel">
+          <div class="inputRow">
+            <div class="inputGroup">
+              <div class="inputLabel">Starting Point</div>
+              <input id="startPointInput" type="text" placeholder="e.g. Brussels, Belgium" autocomplete="off" />
+            </div>
+            <div class="inputGroup">
+              <div class="inputLabel">Destination</div>
+              <input id="destinationPointInput" type="text" placeholder="e.g. Eiffel Tower, Paris" autocomplete="off" />
+            </div>
+          </div>
+          <div class="setupBtnRow">
+            <button id="useCurrentLocationBtn" type="button">Use My Location</button>
+            <button id="calculateRouteBtn" class="voltBtn" type="button">CALCULATE</button>
+            <button id="resetTrekBtn" type="button">Reset</button>
+          </div>
+        </div>
+
+        <!-- Famous Race mode -->
+        <div id="famousModePanel" class="modePanel modePanelHidden">
+          <div class="selectWrap">
+            <div class="inputLabel">Select a Famous Race</div>
+            <select id="famousRaceSelect">
+              <option value="">— Choose a race —</option>
+              <option value="NYC Marathon|42.2">NYC Marathon — 42.2 km</option>
+              <option value="Great Wall|21.1">Great Wall — 21.1 km</option>
+              <option value="Grand Canyon|38.6">Grand Canyon — 38.6 km</option>
+              <option value="Inca Trail|42">Inca Trail — 42 km</option>
+            </select>
+          </div>
+          <div class="famousRacePreview" id="famousRacePreview">
+            <div class="famousRacePreviewInner" id="famousRacePreviewInner" style="display:none;">
+              <div class="famousRacePreviewName" id="famousRacePreviewName"></div>
+              <div class="famousRacePreviewDist" id="famousRacePreviewDist"></div>
+              <button id="famousRaceStartBtn" class="voltBtn" type="button">SET THIS RACE →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTIVE DASHBOARD -->
+      <div id="activeDashboard" class="phase phaseHidden">
+        <div id="routeNamesDisplayTop" class="routeNamesDisplay">—</div>
+
+        <div class="centerActionZone">
+          <button id="startBtn" class="startGo giantActionBtn" type="button">START</button>
+          <button id="stopBtn" class="stopRed giantActionBtn actionHidden" type="button">STOP</button>
+          <div id="liveTimer" class="timerChip">00:00</div>
+        </div>
+
+        <div class="nrcStats">
+          <div class="statsPair">
+            <div class="nrcStat">
+              <div class="statLabel">KM LEFT</div>
+              <div id="distanceRemaining" class="statValue">—</div>
+              <div id="goalDistanceDisplay" class="statMeta">Total Goal: —</div>
+            </div>
+            <div class="statsDivider"></div>
+            <div class="nrcStat">
+              <div class="statLabel">COMPLETED</div>
+              <div id="totalDistance" class="statValue">0.00</div>
+              <div id="distanceSmall" class="statMeta">Today starts now.</div>
+            </div>
+          </div>
+          <div class="progressWrap" aria-label="Virtual progress bar">
+            <div class="progressBarOuter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div id="progressBarFill" class="progressBarFill"></div>
+            </div>
+            <div class="progressMeta">
+              <div><span id="progressPctText">0%</span> complete</div>
+              <div>Route: <span id="calculatedDistanceEl">—</span></div>
+              <div>Calories: <span id="caloriesEl">0</span> kcal</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="remainingSmall" style="display:none"></div>
+
+        <section id="runSummaryMapCard" style="display:none;" aria-label="Run summary">
+          <div class="statLabel" style="padding:10px 0 4px;text-align:center;">Last Run Summary</div>
+          <div class="summaryGrid">
+            <div class="summaryCell"><div class="statLabel">Distance</div><div id="summaryDistance" class="statMeta">0.00 km</div></div>
+            <div class="summaryCell"><div class="statLabel">Time</div><div id="summaryDuration" class="statMeta">00:00</div></div>
+            <div class="summaryCell"><div class="statLabel">Pace</div><div id="summaryPace" class="statMeta">--:-- /km</div></div>
+            <div class="summaryCell"><div class="statLabel">Calories</div><div id="summaryCalories" class="statMeta">0 kcal</div></div>
+          </div>
+        </section>
+
+        <!-- Check My Progress Map button -->
+        <div class="progressMapBtnWrap">
+          <button id="progressMapBtn" class="progressMapBtn" type="button">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/>
+              <line x1="9" y1="3" x2="9" y2="18"/>
+              <line x1="15" y1="6" x2="15" y2="21"/>
+            </svg>
+            CHECK MY PROGRESS MAP
+          </button>
+        </div>
+
+        <div id="status" class="statusLine">Not tracking.</div>
+
+        <div class="bottomResetWrap">
+          <button id="cancelTrekBtn" class="cancelSubtle" type="button">Cancel / Reset Trek</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════
+         PLANS TAB
+    ══════════════════════════════════════════════ -->
+    <section class="tabPane tabHidden" id="tabPlans" aria-label="Plans">
+      <div class="pageTitle">YOUR PLAN</div>
+
+      <!-- Mode Picker cards -->
+      <div class="planModeGrid">
+        <div class="planModeCard" id="planCustomCard">
+          <div class="planModeIcon">✏️</div>
+          <div class="planModeLabel">CUSTOM ROUTE</div>
+          <div class="planModeSub">Set any start & destination on Earth.</div>
+          <button class="voltBtn planModeBtn" id="planGoCustomBtn" type="button">SET UP</button>
+        </div>
+        <div class="planModeCard" id="planFamousCard">
+          <div class="planModeIcon">🏅</div>
+          <div class="planModeLabel">FAMOUS RACE</div>
+          <div class="planModeSub">Run a legendary world challenge.</div>
+          <button class="voltBtn planModeBtn" id="planGoFamousBtn" type="button">PICK RACE</button>
+        </div>
+      </div>
+
+      <div class="plansTitle" style="margin-top:32px;">WORLD CHALLENGES</div>
+      <div class="raceCardGrid" id="plansRaceCardGrid">
+        <div class="raceCard" data-km="42.2" data-label="NYC Marathon">
+          <div class="raceCardName">NYC MARATHON</div>
+          <div class="raceCardDist">42.2 <span class="raceCardUnit">KM</span></div>
+          <div class="raceCardSub">New York City, USA</div>
+          <button class="raceSelectBtn" type="button">SELECT</button>
+        </div>
+        <div class="raceCard" data-km="21.1" data-label="Great Wall">
+          <div class="raceCardName">GREAT WALL</div>
+          <div class="raceCardDist">21.1 <span class="raceCardUnit">KM</span></div>
+          <div class="raceCardSub">Beijing, China</div>
+          <button class="raceSelectBtn" type="button">SELECT</button>
+        </div>
+        <div class="raceCard" data-km="38.6" data-label="Grand Canyon">
+          <div class="raceCardName">GRAND CANYON</div>
+          <div class="raceCardDist">38.6 <span class="raceCardUnit">KM</span></div>
+          <div class="raceCardSub">Arizona, USA</div>
+          <button class="raceSelectBtn" type="button">SELECT</button>
+        </div>
+        <div class="raceCard" data-km="42" data-label="Inca Trail">
+          <div class="raceCardName">INCA TRAIL</div>
+          <div class="raceCardDist">42 <span class="raceCardUnit">KM</span></div>
+          <div class="raceCardSub">Cusco, Peru</div>
+          <button class="raceSelectBtn" type="button">SELECT</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════
+         ACTIVITY TAB
+    ══════════════════════════════════════════════ -->
+    <section class="tabPane tabHidden" id="tabActivity" aria-label="Activity">
+      <div class="pageTitle">ACTIVITY</div>
+
+      <!-- Daily goal ring -->
+      <div class="dailyGoalSection">
+        <div class="dailyGoalRingWrap">
+          <svg class="dailyGoalRing" viewBox="0 0 120 120" width="120" height="120">
+            <circle class="ringBg" cx="60" cy="60" r="52" />
+            <circle class="ringFill" id="dailyGoalRingFill" cx="60" cy="60" r="52"
+              stroke-dasharray="326.73"
+              stroke-dashoffset="326.73" />
+          </svg>
+          <div class="dailyGoalCenter">
+            <div class="dailyGoalPct" id="dailyGoalPct">0%</div>
+            <div class="dailyGoalLbl">DAILY<br>GOAL</div>
+          </div>
+        </div>
+        <div class="dailyGoalMeta">
+          <div class="dailyGoalToday" id="dailyGoalToday">0.0 km today</div>
+          <div class="statMeta">Goal: <span id="dailyGoalTarget">5.0 km</span></div>
+          <div class="dailyGoalAdjust">
+            <button class="goalAdjBtn" id="goalDecBtn" type="button">−</button>
+            <button class="goalAdjBtn" id="goalIncBtn" type="button">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Run history -->
+      <div class="activitySection">
+        <div class="activitySectionTitle">RECENT RUNS</div>
+        <div id="previousRunsList" class="runHistoryList">No runs yet.</div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════
+         CLUB TAB
+    ══════════════════════════════════════════════ -->
+    <section class="tabPane tabHidden" id="tabClub" aria-label="Club">
+      <div class="pageTitle">CLUB</div>
+      <div class="leaderboardLabel">GLOBAL LEADERBOARD</div>
+      <div class="leaderboardList" id="leaderboardList"></div>
+      <div class="clubYouRow" id="clubYouRow"></div>
+    </section>
+
+  </main>
+
+  <!-- ── BOTTOM NAV (4 tabs) ── -->
+  <nav class="nrcNav" aria-label="Bottom navigation">
+    <div class="nrcNavItem active" data-tab="Run">
+      <svg class="navIcon" viewBox="0 0 24 24"><path d="M13 3a1 1 0 1 0 2 0 1 1 0 0 0-2 0M7.5 8.5l2-3 2 1.5 2-2.5 2 1.5-1.5 4.5H11l-1 4H8l1-6z"/></svg>
+      Run
+    </div>
+    <div class="nrcNavItem" data-tab="Plans">
+      <svg class="navIcon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Plans
+    </div>
+    <div class="nrcNavItem" data-tab="Activity">
+      <svg class="navIcon" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Activity
+    </div>
+    <div class="nrcNavItem" data-tab="Club">
+      <svg class="navIcon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Club
+    </div>
+  </nav>
+
+  <!-- ── RUN SUMMARY MODAL ── -->
+  <div id="runSummaryModal" class="runSummaryOverlay" aria-hidden="true">
+    <div class="runSummaryCard">
+      <div class="runSummaryHeader">RUN COMPLETE</div>
+      <div class="summaryGrid">
+        <div class="summaryCell"><div class="statLabel">Distance</div><div id="modalSummaryDistance" class="statMeta">0.00 km</div></div>
+        <div class="summaryCell"><div class="statLabel">Duration</div><div id="modalSummaryDuration" class="statMeta">00:00</div></div>
+        <div class="summaryCell"><div class="statLabel">Avg Pace</div><div id="modalSummaryPace" class="statMeta">--:-- /km</div></div>
+        <div class="summaryCell"><div class="statLabel">Calories</div><div id="modalSummaryCalories" class="statMeta">0 kcal</div></div>
+      </div>
+      <div id="modalRunMap" class="modalRunMap"></div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">
+        <button id="closeRunSummaryBtn" type="button" class="cancelSubtle">Close</button>
+        <button id="saveRunSummaryBtn" type="button" class="voltBtn">Save Run</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SHARE OVERLAY ── -->
+  <div id="shareOverlay" class="shareOverlay" aria-hidden="true">
+    <div class="shareCard">
+      <canvas id="shareCanvas" width="600" height="340"></canvas>
+      <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;">
+        <button id="closeShareBtn" class="cancelSubtle" type="button">Close</button>
+        <button id="downloadShareBtn" class="voltBtn" type="button">Download Image</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PROGRESS MAP OVERLAY ── -->
+  <div id="progressMapOverlay" class="progressMapOverlay" aria-hidden="true">
+
+    <!-- Header bar -->
+    <div class="pmHeader">
+      <button id="progressMapBackBtn" class="pmBackBtn" type="button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Back to Run
+      </button>
+      <div class="pmTitle">YOUR PROGRESS</div>
+      <div class="pmHeaderSpacer"></div>
+    </div>
+
+    <!-- Stat chips row -->
+    <div class="pmStatsRow">
+      <div class="pmChip">
+        <div class="pmChipLabel">COMPLETED</div>
+        <div class="pmChipValue" id="pmCompletedVal">—</div>
+      </div>
+      <div class="pmChip pmChipAccent">
+        <div class="pmChipLabel">REMAINING</div>
+        <div class="pmChipValue" id="pmRemainingVal">—</div>
+      </div>
+      <div class="pmChip">
+        <div class="pmChipLabel">PROGRESS</div>
+        <div class="pmChipValue" id="pmPctVal">—</div>
+      </div>
+    </div>
+
+    <!-- Map fills the rest -->
+    <div id="progressMap" class="pmMapContainer"></div>
+
+    <!-- Legend -->
+    <div class="pmLegend">
+      <div class="pmLegendItem">
+        <div class="pmLegendLine pmLegendPlanned"></div>
+        <span>Planned Route</span>
+      </div>
+      <div class="pmLegendItem">
+        <div class="pmLegendLine pmLegendActual"></div>
+        <span>Your Run</span>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
