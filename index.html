@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-touch-fullscreen" content="yes" />
-  <title>World Challenge</title>
+  <title>World Tour Runner</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <link rel="stylesheet" href="./style.css" />
 </head>
@@ -15,68 +15,47 @@
   <main class="app" id="appMain">
 
     <!-- ══════════════════════════════════════════════
-         RUN TAB (default)
+         RUN TAB
     ══════════════════════════════════════════════ -->
     <section class="tabPane" id="tabRun" aria-label="Run">
       <div class="runScreenHeader">
-        <div class="runTitle" id="runTitleEl">WORLD CHALLENGE</div>
-        <button id="shareBtn" class="shareBtn" type="button" title="Share your progress">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-          SHARE
-        </button>
+        <div class="runTitle" id="runTitleEl">WORLD TOUR</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button id="muteBtn" class="muteBtn" type="button" title="Toggle audio">
+            <svg id="muteIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+            </svg>
+          </button>
+          <button id="shareBtn" class="shareBtn" type="button" title="Share your progress">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            SHARE
+          </button>
+        </div>
       </div>
 
-      <!-- SETUP: mode switcher -->
+      <!-- SETUP: no race selected yet -->
       <div id="setupPhase" class="phase">
-        <div class="modeSwitcher">
-          <button class="modeTab active" id="modeCustomBtn" type="button">CUSTOM</button>
-          <button class="modeTab" id="modeFamousBtn" type="button">FAMOUS RACE</button>
-        </div>
-
-        <!-- Custom mode -->
-        <div id="customModePanel" class="modePanel">
-          <div class="inputRow">
-            <div class="inputGroup">
-              <div class="inputLabel">Starting Point</div>
-              <input id="startPointInput" type="text" placeholder="e.g. Brussels, Belgium" autocomplete="off" />
-            </div>
-            <div class="inputGroup">
-              <div class="inputLabel">Destination</div>
-              <input id="destinationPointInput" type="text" placeholder="e.g. Eiffel Tower, Paris" autocomplete="off" />
-            </div>
-          </div>
-          <div class="setupBtnRow">
-            <button id="useCurrentLocationBtn" type="button">Use My Location</button>
-            <button id="calculateRouteBtn" class="voltBtn" type="button">CALCULATE</button>
-            <button id="resetTrekBtn" type="button">Reset</button>
-          </div>
-        </div>
-
-        <!-- Famous Race mode -->
-        <div id="famousModePanel" class="modePanel modePanelHidden">
-          <div class="selectWrap">
-            <div class="inputLabel">Select a Famous Race</div>
-            <select id="famousRaceSelect">
-              <option value="">— Choose a race —</option>
-              <option value="NYC Marathon|42.2">NYC Marathon — 42.2 km</option>
-              <option value="Great Wall|21.1">Great Wall — 21.1 km</option>
-              <option value="Grand Canyon|38.6">Grand Canyon — 38.6 km</option>
-              <option value="Inca Trail|42">Inca Trail — 42 km</option>
-            </select>
-          </div>
-          <div class="famousRacePreview" id="famousRacePreview">
-            <div class="famousRacePreviewInner" id="famousRacePreviewInner" style="display:none;">
-              <div class="famousRacePreviewName" id="famousRacePreviewName"></div>
-              <div class="famousRacePreviewDist" id="famousRacePreviewDist"></div>
-              <button id="famousRaceStartBtn" class="voltBtn" type="button">SET THIS RACE →</button>
-            </div>
-          </div>
+        <div class="noRacePrompt">
+          <div class="noRaceIcon">🌍</div>
+          <div class="noRaceTitle">Choose Your Race</div>
+          <div class="noRaceSubtitle">Pick a famous World Tour race from the Plans tab to start your virtual journey.</div>
+          <button class="voltBtn noRacePickBtn" id="goToPlansBtn" type="button">BROWSE RACES →</button>
         </div>
       </div>
 
       <!-- ACTIVE DASHBOARD -->
       <div id="activeDashboard" class="phase phaseHidden">
         <div id="routeNamesDisplayTop" class="routeNamesDisplay">—</div>
+
+        <!-- Virtual Postcard -->
+        <div class="postcardWrap" id="postcardWrap">
+          <div class="postcardImg" id="postcardImg" aria-label="Virtual location view"></div>
+          <div class="postcardOverlay">
+            <div class="postcardLocation" id="postcardLocation">Awaiting GPS…</div>
+            <div class="postcardKm" id="postcardKm"></div>
+          </div>
+        </div>
 
         <div class="centerActionZone">
           <button id="startBtn" class="startGo giantActionBtn" type="button">START</button>
@@ -112,16 +91,6 @@
 
         <div id="remainingSmall" style="display:none"></div>
 
-        <section id="runSummaryMapCard" style="display:none;" aria-label="Run summary">
-          <div class="statLabel" style="padding:10px 0 4px;text-align:center;">Last Run Summary</div>
-          <div class="summaryGrid">
-            <div class="summaryCell"><div class="statLabel">Distance</div><div id="summaryDistance" class="statMeta">0.00 km</div></div>
-            <div class="summaryCell"><div class="statLabel">Time</div><div id="summaryDuration" class="statMeta">00:00</div></div>
-            <div class="summaryCell"><div class="statLabel">Pace</div><div id="summaryPace" class="statMeta">--:-- /km</div></div>
-            <div class="summaryCell"><div class="statLabel">Calories</div><div id="summaryCalories" class="statMeta">0 kcal</div></div>
-          </div>
-        </section>
-
         <!-- Check My Progress Map button -->
         <div class="progressMapBtnWrap">
           <button id="progressMapBtn" class="progressMapBtn" type="button">
@@ -137,59 +106,118 @@
         <div id="status" class="statusLine">Not tracking.</div>
 
         <div class="bottomResetWrap">
-          <button id="cancelTrekBtn" class="cancelSubtle" type="button">Cancel / Reset Trek</button>
+          <button id="cancelTrekBtn" class="cancelSubtle" type="button">Change Race / Reset</button>
         </div>
       </div>
     </section>
 
     <!-- ══════════════════════════════════════════════
-         PLANS TAB
+         PLANS TAB — World Tour Race Selector
     ══════════════════════════════════════════════ -->
     <section class="tabPane tabHidden" id="tabPlans" aria-label="Plans">
-      <div class="pageTitle">YOUR PLAN</div>
-
-      <!-- Mode Picker cards -->
-      <div class="planModeGrid">
-        <div class="planModeCard" id="planCustomCard">
-          <div class="planModeIcon">✏️</div>
-          <div class="planModeLabel">CUSTOM ROUTE</div>
-          <div class="planModeSub">Set any start & destination on Earth.</div>
-          <button class="voltBtn planModeBtn" id="planGoCustomBtn" type="button">SET UP</button>
-        </div>
-        <div class="planModeCard" id="planFamousCard">
-          <div class="planModeIcon">🏅</div>
-          <div class="planModeLabel">FAMOUS RACE</div>
-          <div class="planModeSub">Run a legendary world challenge.</div>
-          <button class="voltBtn planModeBtn" id="planGoFamousBtn" type="button">PICK RACE</button>
-        </div>
+      <div class="plansHeader">
+        <div class="plansHeaderTitle">WORLD TOUR</div>
+        <div class="plansHeaderSub">Choose your legendary race</div>
       </div>
 
-      <div class="plansTitle" style="margin-top:32px;">WORLD CHALLENGES</div>
       <div class="raceCardGrid" id="plansRaceCardGrid">
-        <div class="raceCard" data-km="42.2" data-label="NYC Marathon">
-          <div class="raceCardName">NYC MARATHON</div>
-          <div class="raceCardDist">42.2 <span class="raceCardUnit">KM</span></div>
-          <div class="raceCardSub">New York City, USA</div>
-          <button class="raceSelectBtn" type="button">SELECT</button>
+
+        <div class="raceCard" data-race="NYC Marathon" data-km="42.2" data-flag="🗽" data-color="#e63946">
+          <div class="raceCardHero">
+            <div class="raceCardFlag">🗽</div>
+            <div class="raceCardInfo">
+              <div class="raceCardName">NYC MARATHON</div>
+              <div class="raceCardLocation">New York City, USA</div>
+            </div>
+            <div class="raceCardDistBadge">
+              <span class="raceCardDistNum">42.2</span>
+              <span class="raceCardDistUnit">KM</span>
+            </div>
+          </div>
+          <div class="raceCardDesc">Run across 5 boroughs, past Brooklyn Bridge and through Central Park's legendary finish.</div>
+          <button class="raceStartBtn voltBtn" type="button">START RACE →</button>
         </div>
-        <div class="raceCard" data-km="21.1" data-label="Great Wall">
-          <div class="raceCardName">GREAT WALL</div>
-          <div class="raceCardDist">21.1 <span class="raceCardUnit">KM</span></div>
-          <div class="raceCardSub">Beijing, China</div>
-          <button class="raceSelectBtn" type="button">SELECT</button>
+
+        <div class="raceCard" data-race="Great Wall" data-km="21.1" data-flag="🐉" data-color="#f4a261">
+          <div class="raceCardHero">
+            <div class="raceCardFlag">🐉</div>
+            <div class="raceCardInfo">
+              <div class="raceCardName">GREAT WALL</div>
+              <div class="raceCardLocation">Beijing, China</div>
+            </div>
+            <div class="raceCardDistBadge">
+              <span class="raceCardDistNum">21.1</span>
+              <span class="raceCardDistUnit">KM</span>
+            </div>
+          </div>
+          <div class="raceCardDesc">Scale ancient stone steps and traverse the world's most iconic fortification.</div>
+          <button class="raceStartBtn voltBtn" type="button">START RACE →</button>
         </div>
-        <div class="raceCard" data-km="38.6" data-label="Grand Canyon">
-          <div class="raceCardName">GRAND CANYON</div>
-          <div class="raceCardDist">38.6 <span class="raceCardUnit">KM</span></div>
-          <div class="raceCardSub">Arizona, USA</div>
-          <button class="raceSelectBtn" type="button">SELECT</button>
+
+        <div class="raceCard" data-race="Grand Canyon" data-km="38.6" data-flag="🏜️" data-color="#e76f51">
+          <div class="raceCardHero">
+            <div class="raceCardFlag">🏜️</div>
+            <div class="raceCardInfo">
+              <div class="raceCardName">GRAND CANYON</div>
+              <div class="raceCardLocation">Arizona, USA</div>
+            </div>
+            <div class="raceCardDistBadge">
+              <span class="raceCardDistNum">38.6</span>
+              <span class="raceCardDistUnit">KM</span>
+            </div>
+          </div>
+          <div class="raceCardDesc">Descend and ascend the world's most dramatic gorge on the legendary Rim-to-Rim trail.</div>
+          <button class="raceStartBtn voltBtn" type="button">START RACE →</button>
         </div>
-        <div class="raceCard" data-km="42" data-label="Inca Trail">
-          <div class="raceCardName">INCA TRAIL</div>
-          <div class="raceCardDist">42 <span class="raceCardUnit">KM</span></div>
-          <div class="raceCardSub">Cusco, Peru</div>
-          <button class="raceSelectBtn" type="button">SELECT</button>
+
+        <div class="raceCard" data-race="Inca Trail" data-km="42" data-flag="⛰️" data-color="#2a9d8f">
+          <div class="raceCardHero">
+            <div class="raceCardFlag">⛰️</div>
+            <div class="raceCardInfo">
+              <div class="raceCardName">INCA TRAIL</div>
+              <div class="raceCardLocation">Cusco, Peru</div>
+            </div>
+            <div class="raceCardDistBadge">
+              <span class="raceCardDistNum">42</span>
+              <span class="raceCardDistUnit">KM</span>
+            </div>
+          </div>
+          <div class="raceCardDesc">Trek through cloud forest, past ancient Incan ruins to the Sun Gate above Machu Picchu.</div>
+          <button class="raceStartBtn voltBtn" type="button">START RACE →</button>
         </div>
+
+        <div class="raceCard" data-race="Tokyo Marathon" data-km="42.2" data-flag="⛩️" data-color="#6a4c93">
+          <div class="raceCardHero">
+            <div class="raceCardFlag">⛩️</div>
+            <div class="raceCardInfo">
+              <div class="raceCardName">TOKYO MARATHON</div>
+              <div class="raceCardLocation">Tokyo, Japan</div>
+            </div>
+            <div class="raceCardDistBadge">
+              <span class="raceCardDistNum">42.2</span>
+              <span class="raceCardDistUnit">KM</span>
+            </div>
+          </div>
+          <div class="raceCardDesc">Run through neon-lit streets from Tokyo Metropolitan Government to Tokyo Big Sight.</div>
+          <button class="raceStartBtn voltBtn" type="button">START RACE →</button>
+        </div>
+
+        <div class="raceCard" data-race="Sahara Ultra" data-km="250" data-flag="🌅" data-color="#e9c46a">
+          <div class="raceCardHero">
+            <div class="raceCardFlag">🌅</div>
+            <div class="raceCardInfo">
+              <div class="raceCardName">SAHARA ULTRA</div>
+              <div class="raceCardLocation">Morocco</div>
+            </div>
+            <div class="raceCardDistBadge">
+              <span class="raceCardDistNum">250</span>
+              <span class="raceCardDistUnit">KM</span>
+            </div>
+          </div>
+          <div class="raceCardDesc">The toughest race on Earth. Six stages across the burning sands of the Sahara Desert.</div>
+          <button class="raceStartBtn voltBtn" type="button">START RACE →</button>
+        </div>
+
       </div>
     </section>
 
@@ -199,7 +227,6 @@
     <section class="tabPane tabHidden" id="tabActivity" aria-label="Activity">
       <div class="pageTitle">ACTIVITY</div>
 
-      <!-- Daily goal ring -->
       <div class="dailyGoalSection">
         <div class="dailyGoalRingWrap">
           <svg class="dailyGoalRing" viewBox="0 0 120 120" width="120" height="120">
@@ -223,7 +250,6 @@
         </div>
       </div>
 
-      <!-- Run history -->
       <div class="activitySection">
         <div class="activitySectionTitle">RECENT RUNS</div>
         <div id="previousRunsList" class="runHistoryList">No runs yet.</div>
@@ -242,7 +268,7 @@
 
   </main>
 
-  <!-- ── BOTTOM NAV (4 tabs) ── -->
+  <!-- ── BOTTOM NAV ── -->
   <nav class="nrcNav" aria-label="Bottom navigation">
     <div class="nrcNavItem active" data-tab="Run">
       <svg class="navIcon" viewBox="0 0 24 24"><path d="M13 3a1 1 0 1 0 2 0 1 1 0 0 0-2 0M7.5 8.5l2-3 2 1.5 2-2.5 2 1.5-1.5 4.5H11l-1 4H8l1-6z"/></svg>
@@ -262,24 +288,6 @@
     </div>
   </nav>
 
-  <!-- ── RUN SUMMARY MODAL ── -->
-  <div id="runSummaryModal" class="runSummaryOverlay" aria-hidden="true">
-    <div class="runSummaryCard">
-      <div class="runSummaryHeader">RUN COMPLETE</div>
-      <div class="summaryGrid">
-        <div class="summaryCell"><div class="statLabel">Distance</div><div id="modalSummaryDistance" class="statMeta">0.00 km</div></div>
-        <div class="summaryCell"><div class="statLabel">Duration</div><div id="modalSummaryDuration" class="statMeta">00:00</div></div>
-        <div class="summaryCell"><div class="statLabel">Avg Pace</div><div id="modalSummaryPace" class="statMeta">--:-- /km</div></div>
-        <div class="summaryCell"><div class="statLabel">Calories</div><div id="modalSummaryCalories" class="statMeta">0 kcal</div></div>
-      </div>
-      <div id="modalRunMap" class="modalRunMap"></div>
-      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">
-        <button id="closeRunSummaryBtn" type="button" class="cancelSubtle">Close</button>
-        <button id="saveRunSummaryBtn" type="button" class="voltBtn">Save Run</button>
-      </div>
-    </div>
-  </div>
-
   <!-- ── SHARE OVERLAY ── -->
   <div id="shareOverlay" class="shareOverlay" aria-hidden="true">
     <div class="shareCard">
@@ -291,10 +299,59 @@
     </div>
   </div>
 
+  <!-- ── POST-RUN SUMMARY OVERLAY ── -->
+  <div id="postRunOverlay" class="postRunOverlay" aria-hidden="true">
+
+    <div class="prHeader">
+      <div class="prHeaderTitle" id="prHeaderTitle">RUN COMPLETE</div>
+      <button id="prCloseBtn" class="prCloseBtn" type="button">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="prHeroBlock">
+      <div class="prHeroLabel">DISTANCE</div>
+      <div class="prHeroValue" id="prDistanceVal">0.00</div>
+      <div class="prHeroUnit">KM</div>
+    </div>
+
+    <div class="prStatsRow">
+      <div class="prStat">
+        <div class="prStatLabel">TIME</div>
+        <div class="prStatValue" id="prTimeVal">00:00</div>
+      </div>
+      <div class="prStatDivider"></div>
+      <div class="prStat">
+        <div class="prStatLabel">AVG PACE</div>
+        <div class="prStatValue" id="prPaceVal">--:--</div>
+        <div class="prStatUnit">/km</div>
+      </div>
+      <div class="prStatDivider"></div>
+      <div class="prStat">
+        <div class="prStatLabel">CALORIES</div>
+        <div class="prStatValue" id="prCalVal">0</div>
+        <div class="prStatUnit">kcal</div>
+      </div>
+    </div>
+
+    <div id="postRunMap" class="prMapContainer"></div>
+
+    <div class="prLegend">
+      <div class="prLegendItem"><div class="prLegendSwatch" style="background:#16a34a"></div><span>Fast pace</span></div>
+      <div class="prLegendItem"><div class="prLegendSwatch" style="background:#ca8a04"></div><span>Moderate</span></div>
+      <div class="prLegendItem"><div class="prLegendSwatch" style="background:#dc2626"></div><span>Slower</span></div>
+    </div>
+
+    <div class="prActions">
+      <button id="prDiscardBtn" class="cancelSubtle" type="button">Discard</button>
+      <button id="prSaveBtn" class="voltBtn" type="button">SAVE TO JOURNEY</button>
+    </div>
+
+  </div>
+
   <!-- ── PROGRESS MAP OVERLAY ── -->
   <div id="progressMapOverlay" class="progressMapOverlay" aria-hidden="true">
 
-    <!-- Header bar -->
     <div class="pmHeader">
       <button id="progressMapBackBtn" class="pmBackBtn" type="button">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -306,7 +363,6 @@
       <div class="pmHeaderSpacer"></div>
     </div>
 
-    <!-- Stat chips row -->
     <div class="pmStatsRow">
       <div class="pmChip">
         <div class="pmChipLabel">COMPLETED</div>
@@ -322,10 +378,8 @@
       </div>
     </div>
 
-    <!-- Map fills the rest -->
     <div id="progressMap" class="pmMapContainer"></div>
 
-    <!-- Legend -->
     <div class="pmLegend">
       <div class="pmLegendItem">
         <div class="pmLegendLine pmLegendPlanned"></div>

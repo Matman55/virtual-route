@@ -25,9 +25,6 @@ export function updateTrekPhaseUI(state, refs) {
   setPhaseVisibility(refs.setupPhase, !state.isTrekActive);
   setPhaseVisibility(refs.activeDashboard, state.isTrekActive);
 
-  const summaryCard = refs.runSummaryMapCard;
-  if (summaryCard) summaryCard.style.display = (state.isTrekActive && state.showRunSummaryMap) ? "block" : "none";
-
   if (!state.isTrekActive || !Number.isFinite(state.routeDistanceM) || state.routeDistanceM <= 0) {
     if (refs.routeNamesDisplayTop) refs.routeNamesDisplayTop.textContent = "—";
     return;
@@ -91,12 +88,18 @@ export function renderPreviousRuns(state, refs) {
       const km      = Number.isFinite(run.distanceM) ? (run.distanceM / 1000).toFixed(2) : "0.00";
       const cal     = Number.isFinite(run.calories) ? run.calories : 0;
       const dur     = Number.isFinite(run.durationMs) ? formatDurationShort(run.durationMs) : "";
+      const thumb   = run.thumbDataUrl
+        ? `<div class="runHistoryThumb"><img src="${run.thumbDataUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:8px;display:block;"></div>`
+        : `<div class="runHistoryThumb" style="display:flex;align-items:center;justify-content:center;">
+             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="2"><polyline points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+           </div>`;
       return `
         <div class="runHistoryItem">
-          <div>
+          ${thumb}
+          <div style="flex:1;min-width:0;">
             <div class="runHistoryItemDate">${dateStr}${dur ? ` · ${dur}` : ""}</div>
           </div>
-          <div style="text-align:right">
+          <div style="text-align:right;flex-shrink:0;">
             <div class="runHistoryItemKm">${km} km</div>
             <div class="runHistoryItemCal">${cal} kcal</div>
           </div>
@@ -159,7 +162,7 @@ export function renderLeaderboard(state, refs) {
   // Compute your cumulative km
   const yourKm   = parseFloat((state.totalDistanceM / 1000).toFixed(2));
   const yourName = "You";
-  const yourColor = "#e2ff22";
+  const yourColor = "#111111";
 
   // Merge mock + you, sort by km descending
   const all = [...MOCK_RUNNERS, { name: yourName, km: yourKm, race: state.worldChallengeLabel || "Custom Route", color: yourColor, isYou: true }]
@@ -171,7 +174,7 @@ export function renderLeaderboard(state, refs) {
     const rank    = i + 1;
     const rankCls = rank === 1 ? "gold" : rank === 2 ? "silver" : rank === 3 ? "bronze" : "normal";
     const initials = runner.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
-    const rowStyle = runner.isYou ? "background:rgba(226,255,34,0.08);border-radius:12px;padding:4px 8px;" : "";
+    const rowStyle = runner.isYou ? "background:#e2ff22;border-radius:12px;padding:4px 8px;" : "";
     return `
       <div class="lbRow" style="${rowStyle}">
         <div class="lbRank ${rankCls}">${rank}</div>
@@ -188,9 +191,9 @@ export function renderLeaderboard(state, refs) {
     youRowEl.innerHTML = yourKm > 0
       ? `<div class="statLabel" style="margin-bottom:4px;">YOUR RANK</div>
          <div style="display:flex;justify-content:space-between;align-items:center;">
-           <div style="font-family:var(--font);font-size:1.6rem;font-weight:900;font-style:italic;color:var(--volt)">#${yourRank}</div>
+           <div style="font-family:var(--font-num);font-size:1.6rem;font-weight:900;font-style:italic;color:var(--ink)">#${yourRank}</div>
            <div style="text-align:right">
-             <div style="font-family:var(--font);font-size:1.1rem;font-weight:900;font-style:italic;color:#fff">${yourKm.toFixed(2)} km</div>
+             <div style="font-family:var(--font-num);font-size:1.1rem;font-weight:900;font-style:italic;color:var(--ink)">${yourKm.toFixed(2)} km</div>
              <div class="statMeta">${state.runHistory.length} run${state.runHistory.length !== 1 ? "s" : ""} logged</div>
            </div>
          </div>`
